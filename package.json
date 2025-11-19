@@ -5,7 +5,8 @@
  "scripts": {
   "dev": "ts-node-dev --respawn --transpile-only src/services/server.ts",
   "build": "tsc",
-  "start": "node dist/services/server.js"
+  "start": "node dist/services/server.js",
+  "postinstall": "prisma migrate deploy"
 },
   "keywords": [],
   "author": "",
