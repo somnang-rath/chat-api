@@ -18,7 +18,7 @@ class UserController {
 
   async registerUser(req, res) {
     try {
-      const { firstName, lastName, phone, email, password } = req.body
+      const { firstName, lastName, phone, email, password, avatar } = req.body
 
       if (!firstName || !lastName || !email || !password) {
         return res.status(400).json({ message: "Missing required fields" })
@@ -36,6 +36,7 @@ class UserController {
           firstName,
           lastName,
           email,
+          avatar: avatar || null,
           phone: phone || null,
           passwordHash,
         },
