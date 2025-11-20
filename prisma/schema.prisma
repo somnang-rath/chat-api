@@ -13,6 +13,7 @@ model User {
   lastName     String
   email        String   @unique
   phone        String?
+  avatar       String?
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
