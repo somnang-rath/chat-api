@@ -18,4 +18,41 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   isActive     Boolean  @default(true)
+chatMembers  ChatMember[]
+  messages     Message[]
+}
+
+model Chat {
+  id        String       @id @default(uuid())
+  name      String?
+  isGroup   Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  members   ChatMember[]
+  messages  Message[]
+}
+
+model ChatMember {
+  id        String   @id @default(uuid())
+  userId    String
+  chatId    String
+  isAdmin   Boolean  @default(false)
+
+  user      User     @relation(fields: [userId], references: [id])
+  chat      Chat     @relation(fields: [chatId], references: [id])
+
+  @@unique([userId, chatId])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String
+  senderId  String
+  text      String?
+  attachment String?
+  createdAt DateTime @default(now())
+
+  sender    User     @relation(fields: [senderId], references: [id])
+  chat      Chat     @relation(fields: [chatId], references: [id])
 }
