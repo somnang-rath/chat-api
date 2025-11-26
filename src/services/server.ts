@@ -22,7 +22,7 @@ const io = new Server(server, {
   transports: ["websocket"], // FORCE websocket
 })
 
-// global.io = io
+global.io = io
 socketHandler(io)
 
 app.listen(3000, () => console.log("Server running on port 3000"))
