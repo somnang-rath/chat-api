@@ -15,10 +15,14 @@ app.use("/chat", chatRouter)
 
 const server = http.createServer(app)
 const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+  transports: ["websocket"], // FORCE websocket
 })
 
-global.io = io
+// global.io = io
 socketHandler(io)
 
 app.listen(3000, () => console.log("Server running on port 3000"))
