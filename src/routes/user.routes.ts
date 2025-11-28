@@ -15,6 +15,8 @@ userRouter.get("/profile", authMiddleware, userController.getProfile)
 // Get user by ID
 userRouter.get("/:id", userController.getUserById)
 
+userRouter.post("/search", authMiddleware, userController.searchUser)
+
 // // Delete user
 // userRouter.delete("/:id", userController.deleteUser)
 

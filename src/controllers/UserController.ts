@@ -131,6 +131,38 @@ class UserController {
       res.status(500).json({ message: error.message })
     }
   }
+
+  async searchUser(req, res) {
+    try {
+      const { q } = req.body
+      console.log("Search : ", q)
+      if (!q || q.trim() === "") {
+        return res.status(400).json({ message: "Search query is required" })
+      }
+
+      const users = await prisma.user.findMany({
+        where: {
+          OR: [
+            { firstName: { contains: q, mode: "insensitive" } },
+            { lastName: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          avatar: true,
+        },
+      })
+
+      return res.json({ results: users })
+    } catch (error) {
+      console.log("SEARCH USER ERROR:", error)
+      return res.status(500).json({ message: "Server error" })
+    }
+  }
 }
 
 const userController = new UserController()

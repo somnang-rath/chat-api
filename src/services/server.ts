@@ -1,30 +1,22 @@
+// src/services/server.ts
 import express from "express"
-import cookieParser from "cookie-parser"
-import userRouter from "../routes/user.routes"
-import chatRouter from "../routes/chat.routes"
-import { Server } from "socket.io"
 import http from "http"
-import { socketHandler } from "../Socket/socket"
-const app = express()
+import cookieParser from "cookie-parser"
+import { initSocket } from "../Socket/socket"
+import chatRouter from "../routes/chat.routes"
+import userRouter from "../routes/user.routes"
 
+const app = express()
 app.use(express.json())
 app.use(cookieParser())
 
-app.use("/user", userRouter)
 app.use("/chat", chatRouter)
+app.use("/user", userRouter)
 
 const server = http.createServer(app)
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-  transports: ["websocket"], // FORCE websocket
-})
 
-global.io = io
-socketHandler(io)
+// initialize socket and export io from socket.ts
+initSocket(server)
 
-server.listen(process.env.PORT || 3000, () =>
-  console.log(`Server running on port ${process.env.PORT || 3000}`)
-)
+const PORT = process.env.PORT || 3000
+server.listen(3000, () => console.log(`Server running on port ${3000}`))
