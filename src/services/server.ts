@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser"
 import { initSocket } from "../Socket/socket"
 import chatRouter from "../routes/chat.routes"
 import userRouter from "../routes/user.routes"
+import routerPoint from "../routes/point.routes"
 
 const app = express()
 app.use(express.json())
@@ -12,6 +13,7 @@ app.use(cookieParser())
 
 app.use("/chat", chatRouter)
 app.use("/user", userRouter)
+app.use("/point", routerPoint)
 
 const server = http.createServer(app)
 

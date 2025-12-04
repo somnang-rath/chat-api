@@ -82,7 +82,13 @@ export const sendMessage = async (req: any, res: Response) => {
       data: { chatId, senderId, text },
       include: {
         sender: {
-          select: { id: true, firstName: true, lastName: true, avatar: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            createdAt: true,
+          },
         },
       },
     })
