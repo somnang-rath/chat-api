@@ -6,7 +6,11 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
-
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
 model User {
   id           String   @id @default(uuid())
   firstName    String
@@ -14,15 +18,19 @@ model User {
   email        String   @unique
   phone        String?
   avatar       String?
+  gender       Gender?
+  avatarPublicId  String?
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   isActive     Boolean  @default(true)
-chatMembers  ChatMember[]
+
+
+  chatMembers  ChatMember[]
   messages     Message[]
   latestPoints    LatestPoint[]
+  scanLocations  ScanLocation[]
 }
-
 model Chat {
   id        String       @id @default(uuid())
   name      String?
@@ -51,13 +59,22 @@ model Message {
   id        String   @id @default(uuid())
   chatId    String
   senderId  String
+  type        MessageType @default(text)
   text      String?
-   voiceUrl  String?
+  voiceUrl  String?
+  duration    Int?
+  isPlayed    Boolean @default(false)
   attachment String?
   createdAt DateTime @default(now())
 
   sender    User     @relation(fields: [senderId], references: [id])
   chat      Chat     @relation(fields: [chatId], references: [id])
+}
+enum MessageType {
+  text
+  audio
+  image
+  file
 }
 
 model LatestPoint {
@@ -73,4 +90,15 @@ model LatestPoint {
   chat      Chat @relation(fields: [chatId], references: [id])
 
   @@unique([userId, chatId])
+}
+
+model ScanLocation {
+  id        String @id @default(uuid())
+  userId    String @unique
+  scan      Boolean @default(false)
+  distance  Float?
+  latitude  Float?
+  longitude Float?
+
+  user      User @relation(fields:[userId], references:[id])
 }

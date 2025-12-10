@@ -1,8 +1,8 @@
 // src/controllers/chatController.ts
 import { Request, Response } from "express"
-import { PrismaClient } from "@prisma/client"
+import { Prisma, PrismaClient } from "@prisma/client"
 import { io } from "../Socket/socket" // import the io instance
-
+import { uploadVoice } from "../utils/uploadVoice"
 const prisma = new PrismaClient()
 
 export const create1v1 = async (req: any, res: Response) => {
@@ -165,5 +165,67 @@ export const getUserChats = async (req: any, res: Response) => {
     res
       .status(500)
       .json({ message: "Error fetching chats", details: err.message })
+  }
+}
+
+// src/controllers/chatController.ts
+
+export const sendVoiceMessage = async (req, res) => {
+  try {
+    const { chatId, duration } = req.body
+    const senderId = req.user?.id
+    // 1. check chat exists
+    const chat = await prisma.chat.findUnique({ where: { id: chatId } })
+    if (!chat) return res.status(404).json({ message: "Chat not found" })
+
+    // 2. check sender is in chat
+    const isMember = await prisma.chatMember.findFirst({
+      where: { chatId, userId: senderId },
+    })
+    if (!isMember) {
+      return res.status(403).json({ message: "Sender not in chat" })
+    }
+
+    // 3. upload voice to cloudinary (your function)
+    const cloud = await uploadVoice(req.file.path) // return { url, publicId }
+
+    // 4. Save message
+    const msg = await prisma.message.create({
+      data: {
+        chatId,
+        senderId,
+        type: "audio",
+        voiceUrl: cloud.url,
+        duration: Number(duration),
+      },
+      include: {
+        sender: { select: { firstName: true, lastName: true, avatar: true } },
+      },
+    })
+
+    return res.status(200).json({
+      message: "Voice sent successfully",
+      data: msg,
+    })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: "Voice upload error" })
+  }
+}
+
+export const markVoicePlayed = async (req: any, res: Response) => {
+  try {
+    const { messageId } = req.body
+    if (!messageId)
+      return res.status(400).json({ message: "messageId required" })
+
+    await prisma.message.update({
+      where: { id: messageId },
+      data: { isPlayed: true },
+    })
+
+    res.json({ message: "Voice marked as played" })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
   }
 }

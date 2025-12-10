@@ -5,6 +5,7 @@ import {
   createRefreshToken,
   sendRefreshToken,
 } from "../utils/token.util"
+import cloudinary from "../config/cloudinary"
 
 const prisma = new PrismaClient()
 const User = prisma.user
@@ -160,6 +161,73 @@ class UserController {
       return res.json({ results: users })
     } catch (error) {
       console.log("SEARCH USER ERROR:", error)
+      return res.status(500).json({ message: "Server error" })
+    }
+  }
+
+  async updateProfile(req, res) {
+    try {
+      const userId = req.user.id
+
+      // Avoid destructuring undefined
+      const { firstName, lastName, phone, avatar, gender } = req.body || {}
+
+      // 1. Find user
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      })
+
+      if (!user) return res.status(404).json({ message: "User not found" })
+
+      let avatarUrl = user.avatar
+      let avatarPublicId = user.avatarPublicId
+
+      // 2. If uploading new avatar only
+      if (avatar) {
+        const upload = await cloudinary.uploader.upload(avatar, {
+          folder: "user_avatars",
+        })
+
+        avatarUrl = upload.secure_url
+        avatarPublicId = upload.public_id
+
+        // Delete old avatar
+        if (user.avatarPublicId) {
+          await cloudinary.uploader.destroy(user.avatarPublicId)
+        }
+      }
+
+      // 3. Dynamic update only fields that are sent
+      const updateData: any = {}
+      if (firstName) updateData.firstName = firstName
+      if (lastName) updateData.lastName = lastName
+      if (phone) updateData.phone = phone
+      if (gender) updateData.gender = gender
+      if (avatar) {
+        updateData.avatar = avatarUrl
+        updateData.avatarPublicId = avatarPublicId
+      }
+
+      // if no field provided → return nothing changed
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ message: "Nothing to update" })
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+      })
+
+      const { passwordHash, ...safeUser } = updatedUser
+
+      return res.json({
+        message: avatar
+          ? "Avatar updated successfully"
+          : "Profile updated successfully",
+        user: safeUser,
+      })
+    } catch (error) {
+      console.log("UPDATE PROFILE ERROR:", error)
       return res.status(500).json({ message: "Server error" })
     }
   }

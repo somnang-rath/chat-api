@@ -93,4 +93,34 @@ export const handleLocationEvents = (io: Server, socket: any) => {
 
     // cb && cb({ ok: true })
   })
+  // src/socket/handlers/locationHandler.ts
+
+  socket.on("unpin-point", async (data, cb) => {
+    if (!data || !data.groupId) {
+      return cb && cb({ ok: false, error: "invalid_groupId" })
+    }
+
+    try {
+      await prisma.latestPoint.deleteMany({
+        where: {
+          userId: user.id,
+          chatId: data.groupId,
+        },
+      })
+
+      const groupRoom = `group_${data.groupId}`
+
+      // broadcast remove marker
+      socket.to(groupRoom).emit("update-point", {
+        userId: user.id,
+        point: null,
+      })
+
+      cb && cb({ ok: true })
+      console.log(`Unpin by user ${user.id} in ${groupRoom}`)
+    } catch (err) {
+      console.error("Error unpin:", err)
+      cb && cb({ ok: false })
+    }
+  })
 }

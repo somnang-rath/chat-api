@@ -6,6 +6,7 @@ import { initSocket } from "../Socket/socket"
 import chatRouter from "../routes/chat.routes"
 import userRouter from "../routes/user.routes"
 import routerPoint from "../routes/point.routes"
+import scanRouter from "../routes/scan.routes"
 
 const app = express()
 app.use(express.json())
@@ -14,7 +15,7 @@ app.use(cookieParser())
 app.use("/chat", chatRouter)
 app.use("/user", userRouter)
 app.use("/point", routerPoint)
-
+app.use("/scan", scanRouter)
 const server = http.createServer(app)
 
 // initialize socket and export io from socket.ts
